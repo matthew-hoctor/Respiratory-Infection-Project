@@ -252,6 +252,8 @@ div.tocify {
 <h1>CAMP dataset</h1>
 <p>Import the CAMP dataset:</p>
 <pre class="r"><code>camp &lt;- read_excel(&quot;camp_2021 class project.xlsx&quot;)</code></pre>
+<p>Fill missing covariate values:</p>
+<pre class="r"><code>camp &lt;- fill(camp, c(&quot;Anypet&quot;, &quot;Woodstove&quot;, &quot;Dehumid&quot;, &quot;Parent_smokes&quot;), .direction = &quot;down&quot;)</code></pre>
 </div>
 
 

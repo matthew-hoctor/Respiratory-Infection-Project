@@ -44,3 +44,9 @@ Import the CAMP dataset:
 camp <- read_excel("camp_2021 class project.xlsx")
 ```
 
+Fill missing covariate values:
+
+```{r}
+camp <- fill(camp, c("Anypet", "Woodstove", "Dehumid", "Parent_smokes"), .direction = "down")
+```
+
