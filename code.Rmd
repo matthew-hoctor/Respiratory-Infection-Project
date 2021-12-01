@@ -1,6 +1,6 @@
 ---
 title: "Code Appendix - Childhood Asthma Management Program Project - BSTA 519"
-author: "Matthew Hoctor"
+author: "Matthew Hoctor, Bryon Langford"
 date: "11/30/2021"
 output:
   html_document:
@@ -49,4 +49,13 @@ Fill missing covariate values:
 ```{r}
 camp <- fill(camp, c("Anypet", "Woodstove", "Dehumid", "Parent_smokes"), .direction = "down")
 ```
+
+
+This is a test.
+
+
+Another Test.
+
+
+
 
