@@ -1,6 +1,8 @@
 # Project Description
 
-We will be answering question 1, [as described in the class project PDF](https://github.com/matthew-hoctor/Respiratory-Infection-Project/blob/main/Class%20project%20Fall%202021.pdf), using the [Childhood Asthma Management Program dataset](https://github.com/matthew-hoctor/Respiratory-Infection-Project/blob/main/camp_2021%20class%20project.xlsx).
+We will be answering several questions using the Childhood Asthma Management Program dataset:
+  * Is there change over time in FFratio, and are budesonide and nedocromil effective in preventing the decline of FFratio?
+  * Is there a difference in effectiveness between budesonide and nedocromil?
 
 # Links
 
