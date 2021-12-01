@@ -6,5 +6,5 @@ We will be answering question 1, [as described in the class project PDF](https:/
 
  * [Manuscript](https://docs.google.com/document/d/1f82iAfz22OQVLldnrwroW9gOCNOHYjPbv6C_SxLVMtk/edit)
  * [Presentation](https://docs.google.com/presentation/d/1AH4tWLprfIwPo_Jn0p_IJmeW-Cj772ZOlw5reCnXf3U/edit#slide=id.p)
- * [Zotero Repository]()
- * [Code Appendix]()
+ * [Zotero Repository](https://www.zotero.org/groups/4528833/camp_project_-_bsta519)
+ * [Code Appendix](https://matthew-hoctor.github.io/Respiratory-Infection-Project/code)
