@@ -50,11 +50,37 @@ Fill missing covariate values:
 camp <- fill(camp, c("Anypet", "Woodstove", "Dehumid", "Parent_smokes"), .direction = "down")
 ```
 
+Descriptive Statistics
 
-This is a test.
+```{r}
+# convert Visitc to numeric variable
+camp$Visitc <- as.numeric(camp$Visitc)
 
+summary(camp) # FFratio variable has 31 missing values
 
-Another Test.
+# Remove missing values
+camp <- na.omit(camp)
+```
+
+Time Plot
+
+```{r}
+camp_mean <- camp %>%
+  group_by(Trtment, Visitc) %>%
+  summarise(Mean_FFratio = mean(FFratio))
+
+camp_mean
+
+ggplot(data = camp_mean,
+       mapping = aes(x = Visitc, y = Mean_FFratio,
+                     colour = factor(Trtment), group = factor(Trtment))) +
+  geom_line() + geom_point() + theme(legend.position = "right") +
+  labs(y = "Mean FFratio (%)", x = "Follow-up Visit (months)") +
+  scale_color_manual(labels = c("Budesonide", "Nedocromil", "Placebo"), values =   c("#009E73", "#0072B2", "#CC79A7")) + 
+  ggtitle("Plot of Mean Response Profiles of FFRatio by Treatment") + 
+  labs(color = "Treatments")
+```
+
 
 
 
