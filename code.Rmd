@@ -20,6 +20,7 @@ library(dplyr)
 library(readxl)
 library(tidyverse)
 library(ggplot2)
+library(psych)
 # library(CarletonStats)
 # library(pwr)
 # library(BSDA)
@@ -56,7 +57,7 @@ Descriptive Statistics
 # convert Visitc to numeric variable
 camp$Visitc <- as.numeric(camp$Visitc)
 
-summary(camp) # FFratio variable has 31 missing values
+summary(camp$FFratio) # FFratio variable has 31 missing values
 
 # Remove missing values
 camp <- na.omit(camp)
