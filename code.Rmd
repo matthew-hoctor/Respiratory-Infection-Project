@@ -31,8 +31,10 @@ library(psych)
 # library(gridExtra)
 # library(DescTools)
 # library(DiagrammeR)
-# library(nlme)
-# library(doBy)
+library(nlme)
+library(doBy)
+library(multcomp)
+library(mgcv)
 # library(geepack)
 # library(rje)
 ```
@@ -48,7 +50,7 @@ camp <- read_excel("camp_2021 class project.xlsx")
 Fill missing covariate values:
 
 ```{r}
-camp <- fill(camp, c("Anypet", "Woodstove", "Dehumid", "Parent_smokes"), .direction = "down")
+camp <- fill(camp, c("Anypet", "Woodstove", "Dehumid", "Parent_smokes", "FFratio"), .direction = "downup")
 ```
 
 Descriptive Statistics
@@ -60,13 +62,15 @@ camp$Visitc <- as.numeric(camp$Visitc)
 summary(camp$FFratio) # FFratio variable has 31 missing values
 
 # Remove missing values
-camp <- na.omit(camp)
+# camp <- na.omit(camp)
+# Filled missing FFratio values fixed this
 ```
 
 Time Plot
 
 ```{r}
 camp_mean <- camp %>%
+  # na.omit() %>%       #Moved na.omit to the plotting section
   group_by(Trtment, Visitc) %>%
   summarise(Mean_FFratio = mean(FFratio))
 
@@ -82,7 +86,20 @@ ggplot(data = camp_mean,
   labs(color = "Treatments")
 ```
 
+# Model Building
+
+Full RIRS Model:
+
+$$Y_{ij} = (\beta_0 + b_{1i}) + \beta_1 \mbox{Group}_{ij} + (\beta_2 + b_{2i} + \beta_{12}\mbox{Group}_{ij})t_{ij} +\beta_3 \mbox{Gender}_i +\beta_4 \mbox{Ethnicity}_i +\beta_5 \mbox{Pet}_i +\beta_6 \mbox{Woodstove}_i +\beta_7 \mbox{Dehumidifier}_i +\varepsilon_{ij}$$
 
 
-
+```{r}
+camp.RIRS <- lme(FFratio ~ Trtment*Fyears + Age_rz + Gender + Ethnic + Anypet + Woodstove + Dehumid + Parent_smokes,
+                   data = camp,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp.RIRS)
+```
 
