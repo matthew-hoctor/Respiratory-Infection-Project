@@ -37,9 +37,12 @@ library(multcomp)
 library(mgcv)
 # library(geepack)
 # library(rje)
+library(gtsummary)
 ```
 
 # CAMP dataset
+
+## Data import
 
 Import the CAMP dataset:
 
@@ -47,11 +50,15 @@ Import the CAMP dataset:
 camp <- read_excel("camp_2021 class project.xlsx")
 ```
 
-Fill missing covariate values:
+## Filling missing values
+
+Fill missing covariate values and baseline:
 
 ```{r}
 camp <- fill(camp, c("Anypet", "Woodstove", "Dehumid", "Parent_smokes", "FFratio"), .direction = "downup")
 ```
+
+## Factoring & re-leveling
 
 Relevel Treatment groups:
 
@@ -86,19 +93,58 @@ camp$Dehumid[camp$Dehumid == 2] <- 0
 Convert Dehumidifier variable to factor:
 
 ```{r}
-camp$Dehumid <- factor(camp$Dehumid)
+# camp$Dehumid <- factor(camp$Dehumid)
+```
+
+Convert visit month variable to numeric:
+
+```{r}
+camp$Visitc <- as.numeric(camp$Visitc)
+```
+
+## Creating variables for baseline values
+
+Adding baseline values of FFratio and environmental exposures dataset; NA values will be filled:
+
+```{r}
+for (i in 1:length(camp$id)) {
+  camp$BFFratio[i] <- ifelse(camp$Visitc[i] == 0, camp$FFratio[i], NA)
+  camp$BAnypet[i] <- ifelse(camp$Visitc[i] == 0, camp$Anypet[i], NA)
+  camp$BWoodstove[i] <- ifelse(camp$Visitc[i] == 0, camp$Woodstove[i], NA)
+  camp$BDehumid[i] <- ifelse(camp$Visitc[i] == 0, camp$Dehumid[i], NA)
+  camp$BParent_smokes[i] <- ifelse(camp$Visitc[i] == 0, camp$Parent_smokes[i], NA)
+}
+```
+
+Filling in baseline values for subsequent data points:
+
+```{r}
+camp <- fill(camp, c("BFFratio", "BAnypet", "BWoodstove", "BDehumid", "BParent_smokes"), .direction = "down")
+```
+
+## Wide dataset
+
+Create wide dataset with baseline FFratio variable:
+
+```{r}
+campW <- pivot_wider(
+  camp, 
+  id_cols = c(id, Trtment, Age_rz, Gender, Ethnic, BAnypet, BWoodstove, BDehumid, BParent_smokes),
+  names_from = Visitc, 
+  names_prefix = "m",
+  values_from = FFratio)
 ```
 
 # Descriptive Statistics
 
 ```{r}
-# convert Visitc to numeric variable
-# camp$Visitc <- as.numeric(camp$Visitc)  #not needed for subsequent code
+summary(camp$FFratio) 
 
-summary(camp$FFratio) # FFratio variable has 31 missing values
+# Filled missing FFratio values fixed this:
+
+# FFratio variable has 31 missing values
 # Remove missing values
 # camp <- na.omit(camp)
-# Filled missing FFratio values fixed this
 ```
 
 ```{r}
@@ -107,6 +153,68 @@ table(camp$Ethnic)
 
 ```{r}
 table(camp$Dehumid)
+```
+
+# Baseline statistics:
+
+Modify campW variables for a better table:
+
+```{r}
+campW$BDehumid[campW$BDehumid == 3] <- NA
+
+campW$GenderF[campW$Gender == "f"] <- 1
+campW$GenderF[campW$Gender == "m"] <- 0
+
+campW$Ethnic2[campW$Ethnic == "w"] <- "White"
+campW$Ethnic2[campW$Ethnic == "b"] <- "Black"
+campW$Ethnic2[campW$Ethnic == "h"] <- "Hispanic"
+campW$Ethnic2[campW$Ethnic == "o"] <- "Other"
+
+campW$Age_rz <- as.numeric(campW$Age_rz)
+
+campW$Trtment[campW$Trtment == "1nedocromil"] <- "Nedocromil"
+campW$Trtment[campW$Trtment == "0placebo"] <- "Placebo"
+campW$Trtment[campW$Trtment == "2budesonide"] <- "Budesonide"
+```
+
+Create factored and re-leveled ethnicity variable
+
+```{r}
+campW$Ethnic2 <- factor(campW$Ethnic2)
+campW$Ethnic2 <- relevel(campW$Ethnic2, ref = "White")
+```
+
+Try adding a random value to age to get it to display as an average:
+
+```{r}
+for (i in 1:length(campW)) {
+  campW$Age_rz2[i] <- campW$Age_rz[i] +rnorm(1)/1000000
+}
+```
+
+
+```{r}
+campW %>% 
+  select(Trtment, Age_rz2, GenderF, Ethnic2, BAnypet, BWoodstove, BDehumid, BParent_smokes) %>%
+  tbl_summary(
+  by = Trtment,
+  missing = "no",
+  label = list(
+    Age_rz2 ~ "Age",
+    GenderF ~ "Female Gender",
+    Ethnic2 ~ "Ethnicity",
+    BAnypet ~ "Pet Exposure",
+    BWoodstove ~ "Woodstove Exposure",
+    BDehumid ~ "Dehumidifier Exposure",
+    BParent_smokes ~ "Tobacco Smoke Exposure"
+  ),
+    statistic = list(
+      all_continuous() ~ "{mean}",
+      all_categorical() ~ "{n} ({p}%)"),
+  ) %>% 
+  add_p()%>%
+  modify_caption("**Table 1. Patient Characteristics**") %>%
+  bold_labels()
 ```
 
 
