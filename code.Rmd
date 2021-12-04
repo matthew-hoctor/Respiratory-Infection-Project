@@ -53,20 +53,64 @@ Fill missing covariate values:
 camp <- fill(camp, c("Anypet", "Woodstove", "Dehumid", "Parent_smokes", "FFratio"), .direction = "downup")
 ```
 
-Descriptive Statistics
+Relevel Treatment groups:
+
+```{r}
+camp$Trtment[camp$Trtment == "A"] <- "2budesonide"
+camp$Trtment[camp$Trtment == "B"] <- "1nedocromil"
+camp$Trtment[camp$Trtment == "C"] <- "0placebo"
+```
+
+Factor gender variable, and factor and re-level ethnicity variable:
+
+```{r}
+camp$Gender <- factor(camp$Gender)
+camp$Ethnic <- factor(camp$Ethnic)
+camp$Ethnic <- relevel(camp$Ethnic, ref = "w")
+```
+
+Relevel environmental variables (pet, woodstove, and parental smoking) such that 0="no" and 1="yes":
+
+```{r}
+camp$Anypet[camp$Anypet == 2] <- 0
+camp$Woodstove[camp$Woodstove == 2] <- 0
+camp$Parent_smokes[camp$Parent_smokes == 2] <- 0
+```
+
+Relevel dehumidifier variable:
+
+```{r}
+camp$Dehumid[camp$Dehumid == 2] <- 0
+```
+
+Convert Dehumidifier variable to factor:
+
+```{r}
+camp$Dehumid <- factor(camp$Dehumid)
+```
+
+# Descriptive Statistics
 
 ```{r}
 # convert Visitc to numeric variable
-camp$Visitc <- as.numeric(camp$Visitc)
+# camp$Visitc <- as.numeric(camp$Visitc)  #not needed for subsequent code
 
 summary(camp$FFratio) # FFratio variable has 31 missing values
-
 # Remove missing values
 # camp <- na.omit(camp)
 # Filled missing FFratio values fixed this
 ```
 
-Time Plot
+```{r}
+table(camp$Ethnic)
+```
+
+```{r}
+table(camp$Dehumid)
+```
+
+
+# Time Plot
 
 ```{r}
 camp_mean <- camp %>%
