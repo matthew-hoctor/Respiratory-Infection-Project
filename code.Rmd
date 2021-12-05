@@ -572,7 +572,7 @@ The models do not have similar fit; therefore model 7 is the parsimonious model.
 
 ## Model Tables
 
-### Full baseline-adjusted RIRS Model
+### Create dataset for display
 
 Create a display-friendly dataset from the camp2 dataset:
 
@@ -614,7 +614,7 @@ camp3$Trtment2 <- relevel(camp3$Trtment2, ref = "Placebo")
 ```
 
 
-Create the model with lme4:
+### Create T2 model with lme4:
 
 ```{r}
 camp3.RIRS.full <- lmer(
@@ -626,6 +626,7 @@ camp3.RIRS.full <- lmer(
 summary(camp3.RIRS.full)
 ```
 
+### T2
 
 ```{r}
 (T2 <- tbl_regression(camp3.RIRS.full,
@@ -640,15 +641,39 @@ summary(camp3.RIRS.full)
                  Woodstove ~ "Woodstove Exposure",
                  Dehumid ~ "Dehumidifier Exposure"
                ),
-               tidy_fun = broom.mixed::tidy
+               # tidy_fun = broom.mixed::tidy
                ) %>%
+  add_global_p() %>%
   modify_caption("**Table 2. Full Model Parameters**") %>%
   bold_labels())
 ```
 
+### Create lme4 Parsimonious baseline-adjusted RIRS model
 
-### Parsimonious baseline-adjusted RIRS model
+```{r}
+camp3.RIRS.3 <- lmer(
+  FFratio ~ Trtment2*Fyears + BFFratio + (1+Fyears|id),
+  data = camp3,
+  REML = TRUE,
+  na.action = na.omit
+  )
+summary(camp3.RIRS.3)
+```
 
+### T3
 
+```{r}
+(T3 <- tbl_regression(camp3.RIRS.3,
+               label = list(
+                 BFFratio ~ "Baseline FEV1/FVC Ratio",
+                 Trtment2 ~ "Treatment",
+                 Fyears ~ "Time (Years)"
+               ),
+               # tidy_fun = broom.mixed::tidy
+               ) %>%
+  add_global_p() %>%
+  modify_caption("**Table 3. Parsimonious Model Parameters**") %>%
+  bold_labels())
+```
 
 # Model Diagnostics
