@@ -377,16 +377,195 @@ We also find a significant difference in effect over time.
 
 ## Patient characteristics-adjusted associations with FFratio
 
-$$Y_{ij} = (\beta_0 + b_{1i}) + \beta_1 \mbox{Nedocromil}_{i} + \beta_2 \mbox{Budesonide}_{i} + (\beta_3 + b_{2i} + \beta_{11} \mbox{Nedocromil}_{i} + \beta_{12} \mbox{Budesonide}_{i})t_{ij} +\beta_4 \mbox{Gender}_i +\beta_5 \mbox{Ethnicity}_i +\beta_6 \mbox{Pet}_i +\beta_7 \mbox{Woodstove}_i +\beta_8 \mbox{Dehumidifier}_i +\varepsilon_{ij}$$
+$$Y_{ij} = (\beta_0 + b_{1i}) + \beta_1 \mbox{Nedocromil}_{i} + \beta_2 \mbox{Budesonide}_{i} + (\beta_3 + b_{2i} + \beta_{11} \mbox{Nedocromil}_{i} + \beta_{12} \mbox{Budesonide}_{i})t_{ij} +\beta_4 \mbox{Gender}_i +\beta_5 \mbox{Ethnicity}_i +\beta_6 \mbox{Pet}_i +\beta_7 \mbox{Woodstove}_i +\beta_8 \mbox{Dehumidifier}_i + \beta_9 \mbox{Base-FFratio}_i  +\varepsilon_{ij}$$
 
 
 ```{r}
-camp.RIRS <- lme(FFratio ~ Trtment*Fyears + Age_rz + Gender + Ethnic + Anypet + Woodstove + Dehumid + Parent_smokes,
-                   data = camp,
+camp2.RIRS.full <- lme(FFratio ~ Trtment*Fyears + Age_rz + Gender + Ethnic + Anypet + Woodstove + Dehumid + Parent_smokes + BFFratio,
+                   data = camp2,
                    random = ~1+Fyears|id,
                    method = "REML",
                    na.action = na.omit
                    )
-summary(camp.RIRS)
+summary(camp2.RIRS.full)
 ```
 
+It is interesting to note that treatment effects seem to have similar values in the full model.
+
+### Deletion 1
+
+Given the above results, we can consider removing age from the above model:
+
+```{r}
+camp2.RIRS.1 <- lme(FFratio ~ Trtment*Fyears + Gender + Ethnic + Anypet + Woodstove + Dehumid + Parent_smokes + BFFratio,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.1)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.full, camp2.RIRS.1)
+```
+
+The models have similar fit; therefore we can proceed with the next deletion step.
+
+### Deletion 2
+
+Given the above results, we can consider removing age from the above model:
+
+```{r}
+camp2.RIRS.2 <- lme(FFratio ~ Trtment*Fyears + Ethnic + Anypet + Woodstove + Dehumid + Parent_smokes + BFFratio,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.2)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.1, camp2.RIRS.2)
+```
+
+The models have similar fit; therefore we can proceed with the next deletion step.
+
+### Deletion 3
+
+Given the above results, we can consider removing dehumidifier exposure from the above model:
+
+```{r}
+camp2.RIRS.3 <- lme(FFratio ~ Trtment*Fyears + Ethnic + Anypet + Woodstove + Parent_smokes + BFFratio,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.3)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.2, camp2.RIRS.3)
+```
+
+The models have similar fit; therefore we can proceed with the next deletion step.
+
+### Deletion 4
+
+Given the above results, we can consider removing secondhand smoke exposure from the above model:
+
+```{r}
+camp2.RIRS.4 <- lme(FFratio ~ Trtment*Fyears + Ethnic + Anypet + Woodstove + BFFratio,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.4)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.3, camp2.RIRS.4)
+```
+
+The models have similar fit; therefore we can proceed with the next deletion step.
+
+### Deletion 5
+
+Given the above results, we can consider removing woodstove exposure from the above model:
+
+```{r}
+camp2.RIRS.5 <- lme(FFratio ~ Trtment*Fyears + Ethnic + Anypet + BFFratio,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.5)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.4, camp2.RIRS.5)
+```
+
+The models have similar fit; therefore we can proceed with the next deletion step.
+
+### Deletion 6
+
+Given the above results, we can consider removing ethnicity from the above model:
+
+```{r}
+camp2.RIRS.6 <- lme(FFratio ~ Trtment*Fyears + Anypet + BFFratio,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.6)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.5, camp2.RIRS.6)
+```
+
+The models have similar fit; therefore we can proceed with the next deletion step.
+
+### Deletion 7
+
+Given the above results, we can consider removing pet exposure from the above model:
+
+```{r}
+camp2.RIRS.7 <- lme(FFratio ~ Trtment*Fyears + BFFratio,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.7)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.6, camp2.RIRS.7)
+```
+
+The models have similar fit; therefore we can proceed with the next deletion step.
+
+### Deletion 8
+
+Given the above results, we can consider removing pet exposure from the above model:
+
+```{r}
+camp2.RIRS.8 <- lme(FFratio ~ Trtment*Fyears,
+                   data = camp2,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp2.RIRS.8)
+```
+
+We can compare the fit of the reduced model
+
+```{r}
+anova(camp2.RIRS.7, camp2.RIRS.8)
+```
+
+The models do not have similar fit; therefore model 7 is the parsimonious model.
+
+# Model Diagnostics
