@@ -202,6 +202,8 @@ for (i in 1:length(campW)) {
 ```
 
 
+## Table 1
+
 ```{r}
 campW %>% 
   select(Trtment, BFFratio2, Age_rz2, GenderF, Ethnic2, BAnypet, BWoodstove, BDehumid, BParent_smokes) %>%
@@ -229,6 +231,16 @@ campW %>%
   add_p()%>%
   modify_caption("**Table 1. Baseline Patient Characteristics**") %>%
   bold_labels()
+```
+
+
+## Plots
+
+```{r}
+barplot(table(camp2$Age_rz),
+        main = "Frequency of Baseline Age",
+        ylab = "Frequency",
+        xlab = "Age at Baseline")
 ```
 
 
@@ -376,6 +388,39 @@ anova(camp2.RIRS.reduced, L = B11B12)
 ```
 
 We also find a significant difference in effect over time.
+
+### Parameter interpretation of baseline-adjusted RIRS model:
+
+```{r}
+summary(camp2.RIRS.reduced)
+intervals(camp2.RIRS.reduced, method = "Wald")
+```
+
+Intercept 95% CI
+
+```{r}
+EST <- 20.57703940
+SD <- 4.1355942
+UB <- EST + SD*1.96
+UB
+LB <- EST - SD*1.96
+LB
+```
+
+Therefore 95% of subjects will have an intercept ($\beta_0 + b_1i$) within (12.47,28.68).
+
+Slope 95% CI
+
+```{r}
+EST <- -0.16045427
+SD <- 0.7290081
+UB <- EST + SD*1.96
+UB
+LB <- EST - SD*1.96
+LB
+```
+
+Therefore 95% of subjects will have a slope ($\beta_3 + b_2i$) within (-1.59,1.27).
 
 ## Patient characteristics-adjusted associations with FFratio
 
@@ -680,13 +725,13 @@ summary(camp3.RIRS.3)
 
 ## Scatter plot matrix
 
-```{r}
+```{r cache = TRUE}
 pairs(campW[11:15])
 ```
 
 ## Based on Marginal and Conditional Residuals
 
-```{r}
+```{r cache = TRUE}
 # Marginal residuals
 camp2$pred_m <- predict(camp2.RIRS.reduced, level = 0)
 
@@ -710,7 +755,7 @@ Checked normaility assumption for selected timepoints.
 
 ## Transformed Residuals
 
-```{r}
+```{r cache = TRUE}
 est.cov <- extract.lme.cov(camp2.RIRS.reduced)
 li <- t(chol(est.cov))
 camp2$cholesky.residuals <- solve(li) %*% camp2$resid_m
@@ -723,7 +768,7 @@ qqnorm(camp2$cholesky.residuals)
 camp2$cholesky.residuals[1:20]  
 ```
 
-```{r}
+```{r cache = TRUE}
 camp2$cholesky.pred <- solve(li) %*% camp2$pred_m
 camp2$cholesky.pred[1:20]
 ```
@@ -733,7 +778,7 @@ camp2$cholesky.pred[1:20]
 ggplot(mapping = aes(x = camp2$cholesky.pred, y = camp2$cholesky.residuals)) + geom_point() + geom_hline(yintercept=0)
 ```
 
-```{r}
+```{r cache = TRUE}
 mean(abs(camp2$cholesky.residuals))
 ## Absolute transformed residuals vs. transformed predicted value
 ggplot(mapping = aes(x = camp2$cholesky.pred, y = abs(camp2$cholesky.residuals))) + geom_point() + geom_hline(yintercept=0.7148769) + 
@@ -743,7 +788,7 @@ ggplot(mapping = aes(x = camp2$cholesky.pred, y = abs(camp2$cholesky.residuals))
 
 ## Identify outlying subjects using Mahalanobis distance
 
-```{r}
+```{r cache = TRUE}
 camp2$cholesky.residuals.sq <-  camp2$cholesky.residuals^2
 Mdistance <-camp2 %>%
    group_by(id) %>%
