@@ -677,3 +677,97 @@ summary(camp3.RIRS.3)
 ```
 
 # Model Diagnostics
+
+## Scatter plot matrix
+
+```{r}
+pairs(campW[11:15])
+```
+
+## Based on Marginal and Conditional Residuals
+
+```{r}
+# Marginal residuals
+camp2$pred_m <- predict(camp2.RIRS.reduced, level = 0)
+
+## Predicted Marginal Mean by Marginal Residuals
+camp2$resid_m <- camp2$FFratio - camp2$pred_m
+  ggplot(data = camp2,
+  mapping = aes(x = pred_m, y = resid_m)) +
+  geom_point() + geom_hline(yintercept=0)
+```
+
+## QQplot at each time point
+
+```{r}
+qqnorm(camp2$resid_m[camp2$Visitc==2])
+qqnorm(camp2$resid_m[camp2$Visitc==4])
+qqnorm(camp2$resid_m[camp2$Visitc==12])
+qqnorm(camp2$resid_m[camp2$Visitc==16])
+```
+
+Checked normaility assumption for selected timepoints.
+
+## Transformed Residuals
+
+```{r}
+est.cov <- extract.lme.cov(camp2.RIRS.reduced)
+li <- t(chol(est.cov))
+camp2$cholesky.residuals <- solve(li) %*% camp2$resid_m
+
+## QQ plot of Transformed Residuals
+qqnorm(camp2$cholesky.residuals)
+```
+
+```{r}
+camp2$cholesky.residuals[1:20]  
+```
+
+```{r}
+camp2$cholesky.pred <- solve(li) %*% camp2$pred_m
+camp2$cholesky.pred[1:20]
+```
+
+```{r}
+## Transformed Predicted Value by Transformed Residuals
+ggplot(mapping = aes(x = camp2$cholesky.pred, y = camp2$cholesky.residuals)) + geom_point() + geom_hline(yintercept=0)
+```
+
+```{r}
+mean(abs(camp2$cholesky.residuals))
+## Absolute transformed residuals vs. transformed predicted value
+ggplot(mapping = aes(x = camp2$cholesky.pred, y = abs(camp2$cholesky.residuals))) + geom_point() + geom_hline(yintercept=0.7148769) + 
+                 geom_smooth(method = "loess")
+```
+
+
+## Identify outlying subjects using Mahalanobis distance
+
+```{r}
+camp2$cholesky.residuals.sq <-  camp2$cholesky.residuals^2
+Mdistance <-camp2 %>%
+   group_by(id) %>%
+  summarise(sum = sum(cholesky.residuals.sq), n = n())
+
+Mdistance$pvalue <- pchisq(Mdistance$sum, df = Mdistance$n, ncp = 0, lower.tail = FALSE)
+Mdistance$id[Mdistance$pvalue < 0.0001]  
+```
+
+refit the model after excluding these observations
+
+```{r}
+iexclude = c(2, 86, 100, 197, 285, 321, 366, 373, 384, 401, 404, 441, 499, 531, 553, 557, 561, 587, 639, 659, 686, 722, 744, 764, 771, 788, 790, 796, 809, 819, 879, 902, 910, 1005, 1019, 1024, 1038)
+"%ni%" = Negate( "%in%" )
+camp4 = filter(camp2, camp2$id %ni% iexclude)
+
+# Refit the model
+camp4.RIRS.reduced <- lme(FFratio ~ Trtment*Fyears + BFFratio,
+                   data = camp4,
+                   random = ~1+Fyears|id,
+                   method = "REML",
+                   na.action = na.omit
+                   )
+summary(camp4.RIRS.reduced)
+```
+
+There are 37 outlying subjects. After exclusion, the model coefficients and conclusions are similar to the full sample.
