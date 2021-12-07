@@ -250,7 +250,7 @@ barplot(table(camp2$Age_rz),
 camp_mean <- camp %>%
   # na.omit() %>%       #Moved na.omit to the plotting section
   group_by(Trtment, Visitc) %>%
-  summarise(Mean_FFratio = mean(FFratio))
+  summarise(Mean_FFratio = mean(FFratio), N = n())
 
 camp_mean
 
@@ -259,10 +259,12 @@ ggplot(data = camp_mean,
                      colour = factor(Trtment), group = factor(Trtment))) +
   geom_line() + geom_point() + theme(legend.position = "right") +
   labs(y = "Mean FFratio (%)", x = "Follow-up Visit (months)") +
-  scale_color_manual(labels = c("Budesonide", "Nedocromil", "Placebo"), values =   c("#009E73", "#0072B2", "#CC79A7")) + 
+  scale_color_manual(labels = c("Placebo", "Nedocromil", "Budesonide"), values =   c("#009E73", "#0072B2", "#CC79A7")) + 
   ggtitle("Plot of Mean Response Profiles of FFRatio by Treatment") + 
   labs(color = "Treatments")
 ```
+
+Note that at month 44 there are 1, 6, & 3 observations for placebo, nedocromil, and budesonide respectively; and for month 64 there are 8, 2, & 9 observations for placebo, nedocromil, and budesonide respectively.
 
 # Model Building
 
@@ -302,7 +304,7 @@ Comparison to RIRS model:
 anova(camp.RI.reduced, camp.RIRS.reduced)
 ```
 
-From Fitzmaurice Table C1, for $q = 10$, a critical value of 32.40 corresponds to p=0.0005; therefore the RIRS model is a better fit.
+From Fitzmaurice Table C1, for $q = 1$, a critical value of 14.18 corresponds to p=0.0005; therefore the RIRS model is a better fit.
 
 ### Baseline-adjusted RIRS model
 
@@ -339,9 +341,11 @@ anova(camp2.RI.reduced, camp2.RIRS.reduced)
 anova(camp.RI.reduced, camp.RIRS.reduced)
 ```
 
-From Fitzmaurice Table C1, for $q = 10$, a critical value of 32.40 corresponds to p=0.0005; therefore the baseline-adjusted RIRS model is a better fit.  The baseline-adjusted and unadjusted models cannot be directly compared; however the baseline adjusted models have lesser AIC & BIC values, greater biological plausibility (espeially for budesonide), 
+From Fitzmaurice Table C1, for $q = 1$, a critical value of 14.18 corresponds to p=0.0005; therefore the baseline-adjusted RIRS model is a better fit.  The baseline-adjusted and unadjusted models cannot be directly compared; however the baseline adjusted models have lesser AIC & BIC values, greater biological plausibility (espeially for budesonide), 
 
-### Change over time in FF ratio
+### Change over time in FEV1/FVC ratio
+
+#### Placebo
 
 Starting with the baseline-adjusted RIRS model; we can test $H_0: \beta_3 = 0$:
 
@@ -350,7 +354,29 @@ B3 = c(0,0,0,1,0,0,0)
 anova(camp2.RIRS.reduced, L = B3)
 ```
 
-Therefore we can conclude that there is a change over time in FF ratio
+Therefore we can conclude that there is a change over time in FEV1/FVC ratio for the placebo group.
+
+#### Nedocromil
+
+Starting with the baseline-adjusted RIRS model; we can test $H_0: \beta_3 + \beta_{11}= 0$:
+
+```{r}
+B3B11 = c(0,0,0,1,0,1,0)
+anova(camp2.RIRS.reduced, L = B3B11)
+```
+
+Therefore we fail to reject the null hypothesis; the change over time in FEV1/FVC ratio for the nedocromil group is not statistically significantly different from the null.
+
+#### Budesonide
+
+Starting with the baseline-adjusted RIRS model; we can test $H_0: \beta_3 + \beta_{12} = 0$:
+
+```{r}
+B3B12 = c(0,0,0,1,0,0,1)
+anova(camp2.RIRS.reduced, L = B3B12)
+```
+
+Therefore we can conclude that there is a change over time in FEV1/FVC ratio for the budesonide group.
 
 ### Effectiveness of budesonide and nedocromil in preventing decline of FFratio
 
@@ -426,6 +452,12 @@ Therefore 95% of subjects will have a slope ($\beta_3 + b_2i$) within (-1.59,1.2
 
 $$Y_{ij} = (\beta_0 + b_{1i}) + \beta_1 \mbox{Nedocromil}_{i} + \beta_2 \mbox{Budesonide}_{i} + (\beta_3 + b_{2i} + \beta_{11} \mbox{Nedocromil}_{i} + \beta_{12} \mbox{Budesonide}_{i})t_{ij} +\beta_4 \mbox{Gender}_i +\beta_5 \mbox{Ethnicity}_i +\beta_6 \mbox{Pet}_i +\beta_7 \mbox{Woodstove}_i +\beta_8 \mbox{Dehumidifier}_i + \beta_9 \mbox{Base-FFratio}_i  +\varepsilon_{ij}$$
 
+$$\begin{align*}
+Y_{ij} &= (\beta_0 + b_{1i}) + \beta_1 \mbox{Nedocromil}_{i} + \beta_2 \mbox{Budesonide}_{i}\\
+&\quad+ (\beta_3 + b_{2i} + \beta_{11} \mbox{Nedocromil}_{i} + \beta_{12} \mbox{Budesonide}_{i})t_{ij}\\
+&\quad+\beta_4 \mbox{Gender}_i +\beta_5 \mbox{Ethnicity}_i + \beta_6 \mbox{Base-Age}_i\\
+&\quad+ \beta_7 \mbox{Smoke}_{ij} + \beta_8 \mbox{Pet}_{ij} +\beta_9 \mbox{Woodstove}_{ij} +\beta_{10} \mbox{Dehumidifier}_{ij} + \beta_{11} \mbox{Base-FEV1/FVC}_{ij}  +\varepsilon_{ij}
+\end{align*}$$
 
 ```{r}
 camp2.RIRS.full <- lme(FFratio ~ Trtment*Fyears + Age_rz + Gender + Ethnic + Anypet + Woodstove + Dehumid + Parent_smokes + BFFratio,
@@ -615,6 +647,53 @@ anova(camp2.RIRS.7, camp2.RIRS.8)
 
 The models do not have similar fit; therefore model 7 is the parsimonious model.
 
+## Marginal Models
+
+### i. Unstructured covariance
+
+Then create a 'time' variable so that corSymm doesn't complain about 'objects must be a sequence of consecutive integers':
+
+```{r}
+camp2$time <- camp2$Visitc
+camp2$time[camp2$Visitc == 2] = 1
+camp2$time[camp2$Visitc == 4] = 2
+camp2$time[camp2$Visitc == 12] = 3
+camp2$time[camp2$Visitc == 16] = 4
+camp2$time[camp2$Visitc == 24] = 5
+camp2$time[camp2$Visitc == 28] = 6
+camp2$time[camp2$Visitc == 36] = 7
+camp2$time[camp2$Visitc == 40] = 8
+camp2$time[camp2$Visitc == 44] = 9
+camp2$time[camp2$Visitc == 48] = 10
+camp2$time[camp2$Visitc == 52] = 11
+camp2$time[camp2$Visitc == 56] = 12
+camp2$time[camp2$Visitc == 60] = 13
+camp2$time[camp2$Visitc == 64] = 14
+camp2$time[camp2$Visitc == 72] = 15
+camp2$time[camp2$Visitc == 84] = 16
+camp2$time[camp2$Visitc == 96] = 17
+camp2$time[camp2$Visitc == 108] = 18
+camp2$time[camp2$Visitc == 120] = 19
+```
+
+Creating the model:
+
+```{r}
+# camp2.reml.uns <- gls(FFratio ~ Trtment*Fyears + Age_rz + Gender + Ethnic + Anypet + Woodstove + Dehumid + Parent_smokes + BFFratio,
+#                  data = camp2,
+#                  corr = corSymm(form = ~ time | id),       # it does not run if use form =  ~ age | ID
+#                  weights = varIdent(form = ~ 1 | Fyears),
+#                  method = "REML"
+#                      )
+```
+
+Summary:
+
+```{r}
+# summary(camp2.reml.uns)
+# anova(camp2.reml.uns)
+```
+
 ## Model Tables
 
 ### Create dataset for display
@@ -684,7 +763,8 @@ summary(camp3.RIRS.full)
                  GenderF ~ "Female Gender",
                  Anypet ~ "Pet Exposure",
                  Woodstove ~ "Woodstove Exposure",
-                 Dehumid ~ "Dehumidifier Exposure"
+                 Dehumid ~ "Dehumidifier Exposure",
+                 Parent_smokes ~ "Smoke Exposure"
                ),
                # tidy_fun = broom.mixed::tidy
                ) %>%
